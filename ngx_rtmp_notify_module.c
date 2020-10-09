@@ -1590,6 +1590,7 @@ ngx_rtmp_notify_parse_url(ngx_conf_t *cf, ngx_str_t *url)
 {
     ngx_url_t  *u;
     size_t      add;
+    int         port = 80;
 
     add = 0;
 
@@ -1602,9 +1603,16 @@ ngx_rtmp_notify_parse_url(ngx_conf_t *cf, ngx_str_t *url)
         add = 7;
     }
 
+    if (ngx_strncasecmp(url->data, (u_char *) "https://", 8) == 0) {
+        ngx_conf_log_error(NGX_LOG_INFO, cf, 0,
+                "Got HTTPS address for notify. Moving on.")
+        add = 8;
+        port = 443;
+    }
+
     u->url.len = url->len - add;
     u->url.data = url->data + add;
-    u->default_port = 80;
+    u->default_port = port;
     u->uri_part = 1;
 
     if (ngx_parse_url(cf->pool, u) != NGX_OK) {
